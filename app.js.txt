@@ -1,0 +1,4289 @@
+/*==================================================
+    Lucky Picker Pro Premium
+    app.js
+    Version 1.0
+
+    Core Application Engine
+==================================================*/
+
+
+"use strict";
+
+
+/*==================================================
+    APPLICATION STATE
+==================================================*/
+
+
+const LuckyPicker = {
+
+
+    mode: "slot",
+
+
+    spinSpeed: "normal",
+
+
+    spinning: false,
+
+
+    settings: {
+
+
+        sound: true,
+
+
+        vibration: true,
+
+
+        confetti: true,
+
+
+        removeWinner: false
+
+
+    },
+
+
+    currentCategory: "Restaurants",
+
+
+    categories: {
+
+
+        Restaurants: [
+
+            "Pizza",
+
+            "BBQ",
+
+            "Mexican",
+
+            "Italian",
+
+            "Chinese",
+
+            "Seafood",
+
+            "Burger",
+
+            "Chicken"
+
+        ],
+
+
+        Movies: [
+
+            "Action",
+
+            "Comedy",
+
+            "Drama",
+
+            "Documentary",
+
+            "Classic"
+
+        ],
+
+
+        Vacation: [
+
+            "Beach",
+
+            "Mountains",
+
+            "Cruise",
+
+            "Road Trip",
+
+            "Resort"
+
+        ],
+
+
+        Custom: []
+
+    },
+
+
+    history: [],
+
+
+    statistics: {
+
+
+        totalSpins:0,
+
+
+        todaySpins:0,
+
+
+        favoriteCategory:"—",
+
+
+        lastWinner:"—"
+
+
+    }
+
+
+};
+
+
+
+/*==================================================
+    DOM REFERENCES
+==================================================*/
+
+
+const DOM = {
+
+
+    spinButton:
+
+        document.getElementById(
+            "spinButton"
+        ),
+
+
+    leverButton:
+
+        document.getElementById(
+            "leverButton"
+        ),
+
+
+    winnerBanner:
+
+        document.getElementById(
+            "winnerBanner"
+        ),
+
+
+    statusDisplay:
+
+        document.getElementById(
+            "statusDisplay"
+        ),
+
+
+    reels:[
+
+        document.getElementById("reel1"),
+
+        document.getElementById("reel2"),
+
+        document.getElementById("reel3")
+
+    ],
+
+
+    historyList:
+
+        document.getElementById(
+            "historyList"
+        ),
+
+
+    toast:
+
+        document.getElementById(
+            "toast"
+        )
+
+
+
+};
+
+
+
+/*==================================================
+    INITIALIZATION
+==================================================*/
+
+
+function initializeApp(){
+
+
+    loadData();
+
+
+    updateStatistics();
+
+
+    attachEvents();
+
+
+    updateDisplay();
+
+
+    console.log(
+        "Lucky Picker Pro initialized"
+    );
+
+
+}
+
+
+
+/*==================================================
+    START APP
+==================================================*/
+
+
+document.addEventListener(
+
+    "DOMContentLoaded",
+
+    initializeApp
+
+);
+/*==================================================
+    DATA STORAGE
+==================================================*/
+
+
+const STORAGE_KEY = "LuckyPickerPro_Data";
+
+
+
+/*
+    Save all application data
+*/
+
+function saveData(){
+
+
+    const data = {
+
+
+        settings:
+            LuckyPicker.settings,
+
+
+        categories:
+            LuckyPicker.categories,
+
+
+        history:
+            LuckyPicker.history,
+
+
+        statistics:
+            LuckyPicker.statistics,
+
+
+        currentCategory:
+            LuckyPicker.currentCategory
+
+
+
+    };
+
+
+    localStorage.setItem(
+
+        STORAGE_KEY,
+
+        JSON.stringify(data)
+
+    );
+
+
+}
+
+
+
+/*
+    Load saved application data
+*/
+
+function loadData(){
+
+
+    const saved =
+
+        localStorage.getItem(
+            STORAGE_KEY
+        );
+
+
+
+    if(!saved){
+
+        return;
+
+    }
+
+
+
+    try{
+
+
+        const data =
+            JSON.parse(saved);
+
+
+
+        if(data.settings){
+
+            LuckyPicker.settings =
+                {
+
+                    ...LuckyPicker.settings,
+
+                    ...data.settings
+
+                };
+
+        }
+
+
+
+        if(data.categories){
+
+            LuckyPicker.categories =
+                data.categories;
+
+        }
+
+
+
+        if(data.history){
+
+            LuckyPicker.history =
+                data.history;
+
+        }
+
+
+
+        if(data.statistics){
+
+            LuckyPicker.statistics =
+                {
+
+                    ...LuckyPicker.statistics,
+
+                    ...data.statistics
+
+                };
+
+        }
+
+
+
+        if(data.currentCategory){
+
+            LuckyPicker.currentCategory =
+                data.currentCategory;
+
+        }
+
+
+
+    }
+
+    catch(error){
+
+
+        console.error(
+
+            "Unable to load saved data",
+
+            error
+
+        );
+
+
+    }
+
+
+
+}
+
+
+
+/*==================================================
+    RESET FUNCTIONS
+==================================================*/
+
+
+function resetAllData(){
+
+
+    const confirmed =
+
+        confirm(
+
+            "Reset all Lucky Picker Pro data?"
+
+        );
+
+
+
+    if(!confirmed){
+
+        return;
+
+    }
+
+
+
+    localStorage.removeItem(
+
+        STORAGE_KEY
+
+    );
+
+
+
+    location.reload();
+
+
+
+}
+
+
+
+function clearHistory(){
+
+
+    LuckyPicker.history = [];
+
+
+    saveData();
+
+
+    renderHistory();
+
+
+    showToast(
+
+        "History cleared"
+
+    );
+
+}
+
+
+
+/*==================================================
+    EXPORT / IMPORT FOUNDATION
+==================================================*/
+
+
+function exportData(){
+
+
+    const data = {
+
+
+        categories:
+            LuckyPicker.categories,
+
+
+        settings:
+            LuckyPicker.settings
+
+
+    };
+
+
+
+    const json =
+
+        JSON.stringify(
+
+            data,
+
+            null,
+
+            2
+
+        );
+
+
+
+    const blob =
+
+        new Blob(
+
+            [json],
+
+            {
+
+                type:
+                "application/json"
+
+            }
+
+        );
+
+
+
+    const url =
+
+        URL.createObjectURL(
+
+            blob
+
+        );
+
+
+
+    const link =
+
+        document.createElement(
+
+            "a"
+
+        );
+
+
+    link.href = url;
+
+
+    link.download =
+
+        "LuckyPickerPro_Backup.json";
+
+
+
+    link.click();
+
+
+
+    URL.revokeObjectURL(
+
+        url
+
+    );
+
+
+
+    showToast(
+
+        "Backup exported"
+
+    );
+
+}
+/*==================================================
+    EVENT HANDLERS
+==================================================*/
+
+
+function attachEvents(){
+
+
+
+    /*
+        Spin button
+    */
+
+    if(DOM.spinButton){
+
+
+        DOM.spinButton.addEventListener(
+
+            "click",
+
+            startSpin
+
+        );
+
+
+    }
+
+
+
+    /*
+        Pull lever button
+    */
+
+    if(DOM.leverButton){
+
+
+        DOM.leverButton.addEventListener(
+
+            "click",
+
+            startSpin
+
+        );
+
+
+    }
+
+
+
+    /*
+        Category buttons
+    */
+
+    document
+
+        .querySelectorAll(
+
+            ".categoryCard"
+
+        )
+
+        .forEach(button => {
+
+
+            button.addEventListener(
+
+                "click",
+
+                ()=>{
+
+
+                    const text =
+
+                        button.innerText
+                        .replace(
+                            /[^a-zA-Z ]/g,
+                            ""
+                        )
+                        .trim();
+
+
+
+                    selectCategory(text);
+
+
+                }
+
+
+            );
+
+
+        });
+
+
+
+    /*
+        Spin mode buttons
+    */
+
+
+    document
+
+        .querySelectorAll(
+
+            ".modeButton"
+
+        )
+
+        .forEach(button=>{
+
+
+            button.addEventListener(
+
+                "click",
+
+                ()=>{
+
+
+                    setSpinSpeed(
+
+                        button.innerText
+                        .toLowerCase()
+
+                    );
+
+
+                }
+
+            );
+
+
+        });
+
+
+
+    /*
+        Decision modes
+    */
+
+
+    document
+
+        .querySelectorAll(
+
+            ".decisionCard"
+
+        )
+
+        .forEach(card=>{
+
+
+            card.addEventListener(
+
+                "click",
+
+                ()=>{
+
+
+                    setDecisionMode(
+
+                        card.dataset.mode
+
+                    );
+
+
+                }
+
+            );
+
+
+        });
+
+
+
+    /*
+        Clear history
+    */
+
+
+    const clearButton =
+
+        document.getElementById(
+
+            "clearHistoryButton"
+
+        );
+
+
+
+    if(clearButton){
+
+
+        clearButton.addEventListener(
+
+            "click",
+
+            clearHistory
+
+        );
+
+
+    }
+
+
+
+    /*
+        Settings controls
+    */
+
+
+    const soundToggle =
+
+        document.getElementById(
+
+            "soundToggle"
+
+        );
+
+
+    const vibrationToggle =
+
+        document.getElementById(
+
+            "vibrationToggle"
+
+        );
+
+
+    const confettiToggle =
+
+        document.getElementById(
+
+            "confettiToggle"
+
+        );
+
+
+    const removeWinnerToggle =
+
+        document.getElementById(
+
+            "removeWinnerToggle"
+
+        );
+
+
+
+    if(soundToggle){
+
+
+        soundToggle.addEventListener(
+
+            "change",
+
+            ()=>{
+
+
+                LuckyPicker.settings.sound =
+
+                    soundToggle.checked;
+
+
+                saveData();
+
+
+            }
+
+        );
+
+
+    }
+
+
+
+    if(vibrationToggle){
+
+
+        vibrationToggle.addEventListener(
+
+            "change",
+
+            ()=>{
+
+
+                LuckyPicker.settings.vibration =
+
+                    vibrationToggle.checked;
+
+
+                saveData();
+
+
+            }
+
+        );
+
+
+    }
+
+
+
+    if(confettiToggle){
+
+
+        confettiToggle.addEventListener(
+
+            "change",
+
+            ()=>{
+
+
+                LuckyPicker.settings.confetti =
+
+                    confettiToggle.checked;
+
+
+                saveData();
+
+
+            }
+
+        );
+
+
+    }
+
+
+
+    if(removeWinnerToggle){
+
+
+        removeWinnerToggle.addEventListener(
+
+            "change",
+
+            ()=>{
+
+
+                LuckyPicker.settings.removeWinner =
+
+                    removeWinnerToggle.checked;
+
+
+                saveData();
+
+
+            }
+
+        );
+
+
+    }
+
+
+
+}
+
+
+
+/*==================================================
+    CATEGORY MANAGEMENT
+==================================================*/
+
+
+function selectCategory(category){
+
+
+
+    if(
+
+        LuckyPicker.categories[category]
+
+    ){
+
+
+        LuckyPicker.currentCategory =
+
+            category;
+
+
+
+        updateDisplay();
+
+
+
+        showToast(
+
+            category + " selected"
+
+        );
+
+
+
+        saveData();
+
+
+    }
+
+
+
+}
+
+
+
+/*==================================================
+    SPIN MODE MANAGEMENT
+==================================================*/
+
+
+function setSpinSpeed(speed){
+
+
+    const valid = [
+
+        "turbo",
+
+        "normal",
+
+        "vegas",
+
+        "party"
+
+    ];
+
+
+
+    if(
+
+        valid.includes(speed)
+
+    ){
+
+
+        LuckyPicker.spinSpeed = speed;
+
+
+        showToast(
+
+            speed.toUpperCase()
+
+            + " mode"
+
+        );
+
+
+
+    }
+
+
+
+}
+
+
+
+/*==================================================
+    DECISION MODE
+==================================================*/
+
+
+function setDecisionMode(mode){
+
+
+    LuckyPicker.mode = mode;
+
+
+
+    document
+
+        .querySelectorAll(
+
+            ".decisionCard"
+
+        )
+
+        .forEach(card=>{
+
+
+            card.classList.remove(
+
+                "active"
+
+            );
+
+
+        });
+
+
+
+    const active =
+
+        document.querySelector(
+
+            `[data-mode="${mode}"]`
+
+        );
+
+
+
+    if(active){
+
+
+        active.classList.add(
+
+            "active"
+
+        );
+
+
+    }
+
+
+
+    showToast(
+
+        "Mode: " + mode
+
+    );
+
+
+
+}
+/*==================================================
+    SLOT MACHINE ENGINE
+==================================================*/
+
+
+async function startSpin(){
+
+
+    if(LuckyPicker.spinning){
+
+        return;
+
+    }
+
+
+
+    const items =
+
+        LuckyPicker.categories[
+            LuckyPicker.currentCategory
+        ];
+
+
+
+    if(!items || items.length === 0){
+
+
+        showToast(
+
+            "Add items first"
+
+        );
+
+
+        return;
+
+    }
+
+
+
+    LuckyPicker.spinning = true;
+
+
+
+    disableControls();
+
+
+
+    DOM.statusDisplay.innerText =
+
+        "SPINNING...";
+
+
+
+    DOM.winnerBanner.innerText =
+
+        "GOOD LUCK!";
+
+
+
+    playSound("spinSound");
+
+
+
+    vibrate();
+
+
+
+    /*
+        Select winner BEFORE animation
+
+        Animation is visual only.
+
+    */
+
+
+    const winner =
+
+        chooseRandom(items);
+
+
+
+    const speed =
+
+        getSpinDuration();
+
+
+
+    await animateReels(
+
+        winner,
+
+        speed
+
+    );
+
+
+
+    finishSpin(
+
+        winner
+
+    );
+
+
+
+}
+
+
+
+/*==================================================
+    RANDOM SELECTION
+==================================================*/
+
+
+function chooseRandom(array){
+
+
+    const index =
+
+        Math.floor(
+
+            Math.random()
+
+            *
+
+            array.length
+
+        );
+
+
+
+    return array[index];
+
+
+
+}
+
+
+
+/*==================================================
+    SPIN TIMING
+==================================================*/
+
+
+function getSpinDuration(){
+
+
+    switch(
+
+        LuckyPicker.spinSpeed
+
+    ){
+
+
+        case "turbo":
+
+            return 1200;
+
+
+
+        case "vegas":
+
+            return 5000;
+
+
+
+        case "party":
+
+            return 7000;
+
+
+
+        default:
+
+            return 3000;
+
+
+
+    }
+
+
+
+}
+
+
+
+/*==================================================
+    REEL ANIMATION
+==================================================*/
+
+
+function animateReels(
+
+    winner,
+
+    duration
+
+){
+
+
+    return new Promise(resolve=>{
+
+
+        const reels =
+
+            DOM.reels;
+
+
+
+        reels.forEach(
+
+            reel=>{
+
+
+                reel.classList.add(
+
+                    "spinning"
+
+                );
+
+
+            }
+
+        );
+
+
+
+        /*
+            Start random movement
+
+        */
+
+
+        const timers = [
+
+            duration * .45,
+
+            duration * .70,
+
+            duration * .92
+
+        ];
+
+
+
+        timers.forEach(
+
+            (time,index)=>{
+
+
+                setTimeout(()=>{
+
+
+                    stopReel(
+
+                        reels[index],
+
+                        winner
+
+                    );
+
+
+                    if(index===2){
+
+
+                        setTimeout(
+
+                            resolve,
+
+                            300
+
+                        );
+
+
+                    }
+
+
+
+                },time);
+
+
+
+            }
+
+        );
+
+
+
+    });
+
+
+
+}
+
+
+
+/*==================================================
+    STOP INDIVIDUAL REEL
+==================================================*/
+
+
+function stopReel(
+
+    reel,
+
+    value
+
+){
+
+
+    reel.classList.remove(
+
+        "spinning"
+
+    );
+
+
+
+    reel.style.transform =
+
+        "translateY(0)";
+
+
+
+    const items =
+
+        reel.querySelectorAll(
+
+            ".reelItem"
+
+        );
+
+
+
+    items.forEach(item=>{
+
+
+        item.classList.remove(
+
+            "active"
+
+        );
+
+
+    });
+
+
+
+    const matching =
+
+        Array.from(items)
+
+        .find(
+
+            item =>
+
+            item.innerText === value
+
+        );
+
+
+
+    if(matching){
+
+
+        matching.classList.add(
+
+            "active"
+
+        );
+
+
+    }
+
+
+
+}
+
+
+
+/*==================================================
+    COMPLETE SPIN
+==================================================*/
+
+
+function finishSpin(
+
+    winner
+
+){
+
+
+    LuckyPicker.spinning = false;
+
+
+
+    enableControls();
+
+
+
+    DOM.statusDisplay.innerText =
+
+        "DECISION MADE";
+
+
+
+    DOM.winnerBanner.innerText =
+
+        winner;
+
+
+
+    DOM.winnerBanner.classList.add(
+
+        "winner"
+
+    );
+
+
+
+    playSound(
+
+        "winnerSound"
+
+    );
+
+
+
+    vibrate();
+
+
+
+    if(
+
+        LuckyPicker.settings.confetti
+
+    ){
+
+
+        launchConfetti();
+
+
+    }
+
+
+
+    addHistory(
+
+        winner
+
+    );
+
+
+
+    updateStatistics();
+
+
+
+    saveData();
+
+
+
+    if(
+
+        LuckyPicker.settings.removeWinner
+
+    ){
+
+
+        removeWinner(
+
+            winner
+
+        );
+
+
+    }
+
+
+
+}
+/*==================================================
+    CONTROL MANAGEMENT
+==================================================*/
+
+
+function disableControls(){
+
+
+    if(DOM.spinButton){
+
+        DOM.spinButton.disabled = true;
+
+    }
+
+
+    if(DOM.leverButton){
+
+        DOM.leverButton.disabled = true;
+
+    }
+
+
+}
+
+
+
+function enableControls(){
+
+
+    if(DOM.spinButton){
+
+        DOM.spinButton.disabled = false;
+
+    }
+
+
+    if(DOM.leverButton){
+
+        DOM.leverButton.disabled = false;
+
+    }
+
+
+}
+
+
+
+/*==================================================
+    SOUND SYSTEM
+==================================================*/
+
+
+function playSound(id){
+
+
+    if(
+
+        !LuckyPicker.settings.sound
+
+    ){
+
+        return;
+
+    }
+
+
+
+    const audio =
+
+        document.getElementById(id);
+
+
+
+    if(audio){
+
+
+        audio.currentTime = 0;
+
+
+        audio.play()
+
+        .catch(()=>{
+
+
+            /*
+              Browser may block audio
+              until user interaction.
+            */
+
+
+        });
+
+
+    }
+
+
+}
+
+
+
+/*==================================================
+    VIBRATION
+==================================================*/
+
+
+function vibrate(){
+
+
+    if(
+
+        !LuckyPicker.settings.vibration
+
+    ){
+
+        return;
+
+    }
+
+
+
+    if(
+
+        navigator.vibrate
+
+    ){
+
+
+        navigator.vibrate(
+
+            [50,30,80]
+
+        );
+
+
+    }
+
+
+}
+
+
+
+/*==================================================
+    CONFETTI GENERATOR
+==================================================*/
+
+
+function launchConfetti(){
+
+
+    const container =
+
+        document.getElementById(
+
+            "confettiContainer"
+
+        );
+
+
+
+    if(!container){
+
+        return;
+
+    }
+
+
+
+    container.innerHTML = "";
+
+
+
+    const pieces = 80;
+
+
+
+    for(
+
+        let i = 0;
+
+        i < pieces;
+
+        i++
+
+    ){
+
+
+        const piece =
+
+            document.createElement(
+
+                "div"
+
+            );
+
+
+
+        piece.className =
+
+            "confetti";
+
+
+
+        piece.style.left =
+
+            Math.random()*100
+
+            +
+
+            "%";
+
+
+
+        piece.style.animationDelay =
+
+            Math.random()
+
+            *
+
+            1.5
+
+            +
+
+            "s";
+
+
+
+        piece.style.transform =
+
+            `rotate(${Math.random()*360}deg)`;
+
+
+
+        container.appendChild(
+
+            piece
+
+        );
+
+
+    }
+
+
+
+    setTimeout(()=>{
+
+
+        container.innerHTML = "";
+
+
+    },4000);
+
+
+
+}
+
+
+
+/*==================================================
+    TOAST MESSAGES
+==================================================*/
+
+
+let toastTimer;
+
+
+
+function showToast(message){
+
+
+
+    if(!DOM.toast){
+
+        return;
+
+    }
+
+
+
+    DOM.toast.innerText =
+
+        message;
+
+
+
+    DOM.toast.classList.add(
+
+        "show"
+
+    );
+
+
+
+    clearTimeout(
+
+        toastTimer
+
+    );
+
+
+
+    toastTimer = setTimeout(()=>{
+
+
+        DOM.toast.classList.remove(
+
+            "show"
+
+        );
+
+
+    },2500);
+
+
+
+}
+
+
+
+/*==================================================
+    REEL UTILITIES
+==================================================*/
+
+
+function resetReels(){
+
+
+
+    DOM.reels.forEach(
+
+        reel=>{
+
+
+            reel.classList.remove(
+
+                "spinning"
+
+            );
+
+
+
+            reel.style.transform =
+
+                "translateY(0)";
+
+
+
+            reel
+
+            .querySelectorAll(
+
+                ".reelItem"
+
+            )
+
+            .forEach(item=>{
+
+
+                item.classList.remove(
+
+                    "active"
+
+                );
+
+
+            });
+
+
+
+        }
+
+    );
+
+
+
+}
+
+
+
+function shuffleReel(reel){
+
+
+
+    const items =
+
+        Array.from(
+
+            reel.children
+
+        );
+
+
+
+    items.sort(
+
+        ()=>Math.random()-.5
+
+    );
+
+
+
+    items.forEach(item=>{
+
+
+        reel.appendChild(
+
+            item
+
+        );
+
+
+    });
+
+
+
+}
+/*==================================================
+    CATEGORY MANAGEMENT SYSTEM
+==================================================*/
+
+
+function createCategory(
+
+    name,
+
+    items=[]
+
+){
+
+
+    if(!name){
+
+        return false;
+
+    }
+
+
+
+    if(
+
+        LuckyPicker.categories[name]
+
+    ){
+
+
+        showToast(
+
+            "Category already exists"
+
+        );
+
+
+        return false;
+
+    }
+
+
+
+    LuckyPicker.categories[name] =
+
+        items;
+
+
+
+    saveData();
+
+
+
+    renderCategories();
+
+
+
+    showToast(
+
+        name + " created"
+
+    );
+
+
+
+    return true;
+
+
+
+}
+
+
+
+
+
+function deleteCategory(name){
+
+
+
+    if(
+
+        !LuckyPicker.categories[name]
+
+    ){
+
+        return;
+
+    }
+
+
+
+    if(
+
+        name === "Restaurants"
+
+        ||
+
+        name === "Movies"
+
+        ||
+
+        name === "Vacation"
+
+        ||
+
+        name === "Custom"
+
+    ){
+
+
+        showToast(
+
+            "Default category cannot be deleted"
+
+        );
+
+
+        return;
+
+    }
+
+
+
+    delete LuckyPicker.categories[name];
+
+
+
+    if(
+
+        LuckyPicker.currentCategory === name
+
+    ){
+
+
+        LuckyPicker.currentCategory =
+
+            "Custom";
+
+
+    }
+
+
+
+    saveData();
+
+
+
+    renderCategories();
+
+
+
+}
+
+
+
+
+
+function updateCategory(
+
+    name,
+
+    items
+
+){
+
+
+
+    if(
+
+        !name
+
+        ||
+
+        !Array.isArray(items)
+
+    ){
+
+        return;
+
+    }
+
+
+
+    LuckyPicker.categories[name] =
+
+        items.filter(
+
+            item =>
+
+            item.trim().length > 0
+
+        );
+
+
+
+    saveData();
+
+
+
+    updateReels();
+
+
+
+    showToast(
+
+        "List saved"
+
+    );
+
+
+
+}
+
+
+
+
+
+/*==================================================
+    ITEM MANAGEMENT
+==================================================*/
+
+
+function addItem(
+
+    category,
+
+    item
+
+){
+
+
+
+    if(
+
+        !LuckyPicker.categories[category]
+
+    ){
+
+        return;
+
+    }
+
+
+
+    if(
+
+        !item.trim()
+
+    ){
+
+        return;
+
+    }
+
+
+
+    LuckyPicker.categories[category]
+
+    .push(
+
+        item.trim()
+
+    );
+
+
+
+    saveData();
+
+
+
+}
+
+
+
+
+
+function removeItem(
+
+    category,
+
+    item
+
+){
+
+
+
+    const list =
+
+        LuckyPicker.categories[category];
+
+
+
+    if(!list){
+
+        return;
+
+    }
+
+
+
+    LuckyPicker.categories[category] =
+
+        list.filter(
+
+            value =>
+
+            value !== item
+
+        );
+
+
+
+    saveData();
+
+
+
+}
+
+
+
+/*==================================================
+    LOAD CONTENT INTO REELS
+==================================================*/
+
+
+function updateReels(){
+
+
+
+    const items =
+
+        LuckyPicker.categories[
+
+            LuckyPicker.currentCategory
+
+        ];
+
+
+
+    if(
+
+        !items
+
+        ||
+
+        items.length===0
+
+    ){
+
+        return;
+
+    }
+
+
+
+    DOM.reels.forEach(
+
+        reel=>{
+
+
+            reel.innerHTML = "";
+
+
+
+            const displayItems =
+
+                [
+
+                    ...items,
+
+                    ...items,
+
+                    ...items
+
+                ];
+
+
+
+            displayItems.forEach(
+
+                value=>{
+
+
+                    const div =
+
+                        document.createElement(
+
+                            "div"
+
+                        );
+
+
+                    div.className =
+
+                        "reelItem";
+
+
+                    div.innerText =
+
+                        value;
+
+
+
+                    reel.appendChild(
+
+                        div
+
+                    );
+
+
+
+                }
+
+
+            );
+
+
+        }
+
+    );
+
+
+
+}
+
+
+
+
+
+/*==================================================
+    CATEGORY DISPLAY
+==================================================*/
+
+
+function renderCategories(){
+
+
+
+    const grid =
+
+        document.querySelector(
+
+            ".categoryGrid"
+
+        );
+
+
+
+    if(!grid){
+
+        return;
+
+    }
+
+
+
+    grid.innerHTML = "";
+
+
+
+    Object.keys(
+
+        LuckyPicker.categories
+
+    )
+
+    .forEach(
+
+        category=>{
+
+
+            const button =
+
+                document.createElement(
+
+                    "button"
+
+                );
+
+
+
+            button.className =
+
+                "categoryCard";
+
+
+
+            button.innerText =
+
+                category;
+
+
+
+            button.addEventListener(
+
+                "click",
+
+                ()=>{
+
+
+                    selectCategory(
+
+                        category
+
+                    );
+
+
+                }
+
+            );
+
+
+
+            grid.appendChild(
+
+                button
+
+            );
+
+
+        }
+
+    );
+
+
+
+}
+/*==================================================
+    HISTORY SYSTEM
+==================================================*/
+
+
+function addHistory(
+
+    winner
+
+){
+
+
+    const entry = {
+
+
+        category:
+
+            LuckyPicker.currentCategory,
+
+
+        winner:
+
+
+            winner,
+
+
+        date:
+
+            new Date().toISOString()
+
+
+
+    };
+
+
+
+    LuckyPicker.history.unshift(
+
+        entry
+
+    );
+
+
+
+    /*
+        Keep only latest 50
+
+    */
+
+
+    if(
+
+        LuckyPicker.history.length > 50
+
+    ){
+
+
+        LuckyPicker.history.pop();
+
+
+    }
+
+
+
+    renderHistory();
+
+
+
+}
+
+
+
+
+
+function renderHistory(){
+
+
+
+    if(!DOM.historyList){
+
+        return;
+
+    }
+
+
+
+    DOM.historyList.innerHTML = "";
+
+
+
+    if(
+
+        LuckyPicker.history.length === 0
+
+    ){
+
+
+        DOM.historyList.innerHTML =
+
+            `
+
+            <div class="historyEmpty">
+
+                No spins yet.
+
+            </div>
+
+            `;
+
+
+        return;
+
+
+    }
+
+
+
+    LuckyPicker.history.forEach(
+
+        item=>{
+
+
+            const card =
+
+                document.createElement(
+
+                    "div"
+
+                );
+
+
+
+            card.className =
+
+                "historyItem";
+
+
+
+            const date =
+
+                new Date(
+
+                    item.date
+
+                );
+
+
+
+            card.innerHTML =
+
+
+            `
+
+            <div class="historyLeft">
+
+                <div class="historyCategory">
+
+                    ${item.category}
+
+                </div>
+
+
+                <div class="historyWinner">
+
+                    ${item.winner}
+
+                </div>
+
+
+                <div class="historyDate">
+
+                    ${date.toLocaleString()}
+
+                </div>
+
+            </div>
+
+
+            `;
+
+
+
+            DOM.historyList.appendChild(
+
+                card
+
+            );
+
+
+        }
+
+    );
+
+
+
+}
+
+
+
+
+
+/*==================================================
+    STATISTICS ENGINE
+==================================================*/
+
+
+function updateStatistics(){
+
+
+
+    LuckyPicker.statistics.totalSpins =
+
+        LuckyPicker.history.length;
+
+
+
+    LuckyPicker.statistics.lastWinner =
+
+
+        LuckyPicker.history.length
+
+        ?
+
+        LuckyPicker.history[0].winner
+
+        :
+
+        "—";
+
+
+
+    LuckyPicker.statistics.favoriteCategory =
+
+        calculateFavoriteCategory();
+
+
+
+    LuckyPicker.statistics.todaySpins =
+
+        calculateTodaySpins();
+
+
+
+    updateStatisticDisplay();
+
+
+
+}
+
+
+
+
+
+function calculateFavoriteCategory(){
+
+
+
+    if(
+
+        LuckyPicker.history.length===0
+
+    ){
+
+        return "—";
+
+    }
+
+
+
+    const counts = {};
+
+
+
+    LuckyPicker.history.forEach(
+
+        item=>{
+
+
+            counts[item.category] =
+
+                (
+
+                    counts[item.category]
+
+                    ||
+
+                    0
+
+                )
+
+                +
+
+                1;
+
+
+
+        }
+
+    );
+
+
+
+    return Object.keys(counts)
+
+        .sort(
+
+            (a,b)=>
+
+                counts[b]
+
+                -
+
+                counts[a]
+
+        )[0];
+
+
+
+}
+
+
+
+
+
+function calculateTodaySpins(){
+
+
+
+    const today =
+
+        new Date()
+
+        .toDateString();
+
+
+
+    return LuckyPicker.history.filter(
+
+        item=>{
+
+
+            return (
+
+                new Date(
+
+                    item.date
+
+                )
+
+                .toDateString()
+
+                ===
+
+                today
+
+            );
+
+
+        }
+
+    )
+
+    .length;
+
+
+
+}
+
+
+
+
+
+function updateStatisticDisplay(){
+
+
+
+    const total =
+
+        document.getElementById(
+
+            "statTotalSpins"
+
+        );
+
+
+    const favorite =
+
+        document.getElementById(
+
+            "statFavoriteCategory"
+
+        );
+
+
+    const last =
+
+        document.getElementById(
+
+            "statLastWinner"
+
+        );
+
+
+    const today =
+
+        document.getElementById(
+
+            "statToday"
+
+        );
+
+
+
+    if(total){
+
+        total.innerText =
+
+            LuckyPicker.statistics.totalSpins;
+
+    }
+
+
+
+    if(favorite){
+
+        favorite.innerText =
+
+            LuckyPicker.statistics.favoriteCategory;
+
+    }
+
+
+
+    if(last){
+
+        last.innerText =
+
+            LuckyPicker.statistics.lastWinner;
+
+    }
+
+
+
+    if(today){
+
+        today.innerText =
+
+            LuckyPicker.statistics.todaySpins;
+
+    }
+
+
+
+}
+
+
+
+/*==================================================
+    REMOVE WINNER FEATURE
+==================================================*/
+
+
+function removeWinner(
+
+    winner
+
+){
+
+
+
+    const list =
+
+        LuckyPicker.categories[
+
+            LuckyPicker.currentCategory
+
+        ];
+
+
+
+    if(!list){
+
+        return;
+
+    }
+
+
+
+    LuckyPicker.categories[
+
+        LuckyPicker.currentCategory
+
+    ] =
+
+
+        list.filter(
+
+            item =>
+
+            item !== winner
+
+        );
+
+
+
+    updateReels();
+
+
+
+    saveData();
+
+
+
+}
+/*==================================================
+    SETTINGS UI CONTROL
+==================================================*/
+
+
+function initializeSettings(){
+
+
+
+    const sound =
+
+        document.getElementById(
+
+            "soundToggle"
+
+        );
+
+
+    const vibration =
+
+        document.getElementById(
+
+            "vibrationToggle"
+
+        );
+
+
+    const confetti =
+
+        document.getElementById(
+
+            "confettiToggle"
+
+        );
+
+
+    const removeWinner =
+
+        document.getElementById(
+
+            "removeWinnerToggle"
+
+        );
+
+
+
+    if(sound){
+
+        sound.checked =
+
+            LuckyPicker.settings.sound;
+
+    }
+
+
+
+    if(vibration){
+
+        vibration.checked =
+
+            LuckyPicker.settings.vibration;
+
+    }
+
+
+
+    if(confetti){
+
+        confetti.checked =
+
+            LuckyPicker.settings.confetti;
+
+    }
+
+
+
+    if(removeWinner){
+
+        removeWinner.checked =
+
+            LuckyPicker.settings.removeWinner;
+
+    }
+
+
+
+}
+
+
+
+
+
+/*==================================================
+    SETTINGS DRAWER
+==================================================*/
+
+
+function openSettings(){
+
+
+
+    const drawer =
+
+        document.getElementById(
+
+            "settingsDrawer"
+
+        );
+
+
+
+    if(drawer){
+
+        drawer.classList.remove(
+
+            "hidden"
+
+        );
+
+    }
+
+
+}
+
+
+
+function closeSettings(){
+
+
+
+    const drawer =
+
+        document.getElementById(
+
+            "settingsDrawer"
+
+        );
+
+
+
+    if(drawer){
+
+        drawer.classList.add(
+
+            "hidden"
+
+        );
+
+    }
+
+
+}
+
+
+
+
+
+/*==================================================
+    CATEGORY EDIT MODAL
+==================================================*/
+
+
+let editingCategory = null;
+
+
+
+function openEditCategory(
+
+    category
+
+){
+
+
+
+    editingCategory = category;
+
+
+
+    const modal =
+
+        document.getElementById(
+
+            "editListModal"
+
+        );
+
+
+    const name =
+
+        document.getElementById(
+
+            "categoryName"
+
+        );
+
+
+    const items =
+
+        document.getElementById(
+
+            "categoryItems"
+
+        );
+
+
+
+    if(!modal){
+
+        return;
+
+    }
+
+
+
+    name.value = category;
+
+
+
+    items.value =
+
+        LuckyPicker.categories[category]
+
+        .join("\n");
+
+
+
+    modal.classList.remove(
+
+        "hidden"
+
+    );
+
+
+
+}
+
+
+
+
+
+function closeEditCategory(){
+
+
+
+    const modal =
+
+        document.getElementById(
+
+            "editListModal"
+
+        );
+
+
+
+    if(modal){
+
+        modal.classList.add(
+
+            "hidden"
+
+        );
+
+    }
+
+
+
+    editingCategory = null;
+
+
+
+}
+
+
+
+
+
+function saveEditedCategory(){
+
+
+
+    const name =
+
+        document.getElementById(
+
+            "categoryName"
+
+        ).value.trim();
+
+
+
+    const text =
+
+        document.getElementById(
+
+            "categoryItems"
+
+        ).value;
+
+
+
+    const items =
+
+        text
+
+        .split("\n")
+
+        .map(
+
+            item =>
+
+            item.trim()
+
+        )
+
+        .filter(
+
+            item =>
+
+            item.length
+
+        );
+
+
+
+    if(
+
+        !name
+
+    ){
+
+        showToast(
+
+            "Enter category name"
+
+        );
+
+        return;
+
+    }
+
+
+
+    if(
+
+        editingCategory
+
+        &&
+
+        editingCategory !== name
+
+    ){
+
+
+        delete LuckyPicker.categories[
+
+            editingCategory
+
+        ];
+
+
+    }
+
+
+
+    LuckyPicker.categories[name] =
+
+        items;
+
+
+
+    LuckyPicker.currentCategory =
+
+        name;
+
+
+
+    saveData();
+
+
+
+    renderCategories();
+
+
+
+    updateReels();
+
+
+
+    closeEditCategory();
+
+
+
+    showToast(
+
+        "Category saved"
+
+    );
+
+
+
+}
+
+
+
+/*==================================================
+    THEME MANAGEMENT
+==================================================*/
+
+
+function setTheme(theme){
+
+
+
+    document.body.dataset.theme =
+
+        theme;
+
+
+
+    localStorage.setItem(
+
+        "LuckyPickerTheme",
+
+        theme
+
+    );
+
+
+
+}
+
+
+
+
+
+function loadTheme(){
+
+
+
+    const theme =
+
+        localStorage.getItem(
+
+            "LuckyPickerTheme"
+
+        );
+
+
+
+    if(theme){
+
+        setTheme(theme);
+
+    }
+
+
+}
+
+
+
+
+
+/*==================================================
+    SPEED CONTROL
+==================================================*/
+
+
+function initializeSpeedControl(){
+
+
+
+    const speed =
+
+        document.getElementById(
+
+            "spinSpeed"
+
+        );
+
+
+
+    if(!speed){
+
+        return;
+
+    }
+
+
+
+    speed.value =
+
+        LuckyPicker.spinSpeed;
+
+
+
+    speed.addEventListener(
+
+        "change",
+
+        ()=>{
+
+
+            LuckyPicker.spinSpeed =
+
+                speed.value;
+
+
+
+            saveData();
+
+
+
+        }
+
+    );
+
+
+}
+/*==================================================
+    DISPLAY SYNCHRONIZATION
+==================================================*/
+
+
+function updateDisplay(){
+
+
+
+    updateReels();
+
+
+
+    renderCategories();
+
+
+
+    renderHistory();
+
+
+
+    updateStatistics();
+
+
+
+    initializeSettings();
+
+
+
+    initializeSpeedControl();
+
+
+
+    loadTheme();
+
+
+
+}
+
+
+
+
+
+/*==================================================
+    NAVIGATION
+==================================================*/
+
+
+function initializeNavigation(){
+
+
+
+    const buttons =
+
+        document.querySelectorAll(
+
+            ".navButton"
+
+        );
+
+
+
+    buttons.forEach(
+
+        button=>{
+
+
+            button.addEventListener(
+
+                "click",
+
+                ()=>{
+
+
+                    buttons.forEach(
+
+                        item=>{
+
+
+                            item.classList.remove(
+
+                                "active"
+
+                            );
+
+
+                        }
+
+                    );
+
+
+
+                    button.classList.add(
+
+                        "active"
+
+                    );
+
+
+
+                    const label =
+
+                        button.innerText
+
+                        .trim();
+
+
+
+                    if(
+
+                        label.includes(
+
+                            "Settings"
+
+                        )
+
+                    ){
+
+
+                        openSettings();
+
+
+                    }
+
+
+
+                }
+
+            );
+
+
+        }
+
+    );
+
+
+
+}
+
+
+
+
+
+/*==================================================
+    MODAL EVENTS
+==================================================*/
+
+
+function initializeModals(){
+
+
+
+    const close =
+
+        document.getElementById(
+
+            "closeModalButton"
+
+        );
+
+
+
+    const cancel =
+
+        document.getElementById(
+
+            "cancelCategoryButton"
+
+        );
+
+
+
+    const save =
+
+        document.getElementById(
+
+            "saveCategoryButton"
+
+        );
+
+
+
+    if(close){
+
+        close.addEventListener(
+
+            "click",
+
+            closeEditCategory
+
+        );
+
+    }
+
+
+
+    if(cancel){
+
+        cancel.addEventListener(
+
+            "click",
+
+            closeEditCategory
+
+        );
+
+    }
+
+
+
+    if(save){
+
+        save.addEventListener(
+
+            "click",
+
+            saveEditedCategory
+
+        );
+
+    }
+
+
+
+}
+
+
+
+
+
+/*==================================================
+    CATEGORY LONG PRESS / EDIT SUPPORT
+==================================================*/
+
+
+function enableCategoryEditing(){
+
+
+
+    document
+
+    .querySelectorAll(
+
+        ".categoryCard"
+
+    )
+
+    .forEach(
+
+        card=>{
+
+
+            let timer;
+
+
+
+            card.addEventListener(
+
+                "touchstart",
+
+                ()=>{
+
+
+                    timer =
+
+                    setTimeout(
+
+                        ()=>{
+
+
+                            openEditCategory(
+
+                                card.innerText
+
+                            );
+
+
+                        },
+
+                        700
+
+                    );
+
+
+                }
+
+            );
+
+
+
+            card.addEventListener(
+
+                "touchend",
+
+                ()=>{
+
+
+                    clearTimeout(
+
+                        timer
+
+                    );
+
+
+                }
+
+            );
+
+
+        }
+
+    );
+
+
+
+}
+
+
+
+
+
+/*==================================================
+    DAILY RESET CHECK
+==================================================*/
+
+
+function checkDailyReset(){
+
+
+
+    const lastDate =
+
+        localStorage.getItem(
+
+            "LuckyPicker_LastDate"
+
+        );
+
+
+
+    const today =
+
+        new Date()
+
+        .toDateString();
+
+
+
+    if(
+
+        lastDate !== today
+
+    ){
+
+
+
+        LuckyPicker.statistics.todaySpins = 0;
+
+
+
+        localStorage.setItem(
+
+            "LuckyPicker_LastDate",
+
+            today
+
+        );
+
+
+
+        saveData();
+
+
+    }
+
+
+}
+
+
+
+
+
+/*==================================================
+    ENHANCED INITIALIZATION
+==================================================*/
+
+
+function finalizeInitialization(){
+
+
+
+    checkDailyReset();
+
+
+
+    initializeNavigation();
+
+
+
+    initializeModals();
+
+
+
+    enableCategoryEditing();
+
+
+
+    updateDisplay();
+
+
+
+}
+
+
+
+/*
+    Run after main initialization
+*/
+
+
+document.addEventListener(
+
+    "DOMContentLoaded",
+
+    ()=>{
+
+
+        finalizeInitialization();
+
+
+
+    }
+
+);
+/*==================================================
+    APPLICATION INFORMATION
+==================================================*/
+
+
+const APP_INFO = {
+
+
+    name:
+
+        "Lucky Picker Pro",
+
+
+    version:
+
+        "1.0 Premium",
+
+
+    developer:
+
+        "Lucky Picker Studio"
+
+
+};
+
+
+
+
+
+/*==================================================
+    ERROR HANDLING
+==================================================*/
+
+
+window.addEventListener(
+
+    "error",
+
+    event=>{
+
+
+        console.error(
+
+            "Lucky Picker Error:",
+
+            event.error
+
+        );
+
+
+    }
+
+);
+
+
+
+
+
+/*==================================================
+    SAFE EXECUTION
+==================================================*/
+
+
+function safeExecute(
+
+    callback
+
+){
+
+
+    try{
+
+
+        callback();
+
+
+    }
+
+    catch(error){
+
+
+        console.error(
+
+            error
+
+        );
+
+
+        showToast(
+
+            "Something went wrong"
+
+        );
+
+
+    }
+
+
+}
+
+
+
+
+
+/*==================================================
+    UTILITY FUNCTIONS
+==================================================*/
+
+
+function capitalize(
+
+    text
+
+){
+
+
+    if(!text){
+
+        return "";
+
+    }
+
+
+    return (
+
+        text.charAt(0)
+
+        .toUpperCase()
+
+        +
+
+        text.slice(1)
+
+    );
+
+
+}
+
+
+
+
+
+function formatNumber(
+
+    number
+
+){
+
+
+    return Number(number)
+
+    .toLocaleString();
+
+
+}
+
+
+
+
+
+function getCurrentDate(){
+
+
+    return new Date()
+
+    .toLocaleDateString();
+
+
+}
+
+
+
+
+
+/*==================================================
+    APP CLEANUP
+==================================================*/
+
+
+function cleanup(){
+
+
+
+    saveData();
+
+
+
+    DOM.reels.forEach(
+
+        reel=>{
+
+
+            reel.classList.remove(
+
+                "spinning"
+
+            );
+
+
+        }
+
+    );
+
+
+
+}
+
+
+
+
+
+window.addEventListener(
+
+    "beforeunload",
+
+    cleanup
+
+);
+
+
+
+
+
+/*==================================================
+    FINAL STARTUP CHECK
+==================================================*/
+
+
+function applicationReady(){
+
+
+
+    console.log(
+
+        APP_INFO.name
+
+        +
+
+        " "
+
+        +
+
+        APP_INFO.version
+
+        +
+
+        " Ready"
+
+    );
+
+
+
+    /*
+        Make sure reels exist
+    */
+
+
+    if(
+
+        DOM.reels.some(
+
+            reel => !reel
+
+        )
+
+    ){
+
+
+        console.warn(
+
+            "Some reel elements missing"
+
+        );
+
+
+    }
+
+
+
+}
+
+
+
+
+
+document.addEventListener(
+
+    "DOMContentLoaded",
+
+    ()=>{
+
+
+        applicationReady();
+
+
+
+    }
+
+);
+
+
+
+
+
+/*==================================================
+    END OF LUCKY PICKER PRO ENGINE
+==================================================*/

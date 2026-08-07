@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<title>Lucky Picker Pro</title>
+
+<meta name="theme-color" content="#0d0d0d">
+
+<link rel="manifest" href="manifest.json">
+
+<link rel="icon" href="icons/icon-192.png">
+
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+
+<link
+    rel="stylesheet"
+    href="styles.css">
+
+</head>
+
+<body>
+
+<div id="app">
+
+<header class="topBar">
+
+<div class="logoArea">
+
+<div class="logoCoin">
+🎰
+</div>
+
+<div>
+
+<h1>
+Lucky Picker Pro
+</h1>
+
+<p class="subtitle">
+Premium Edition
+</p>
+
+</div>
+
+</div>
+
+<div id="statusDisplay">
+
+MAKE YOUR DECISION
+
+</div>
+
+</header>
+
+<main>
+
+<section id="slotMachine">
+
+<div class="machineFrame">
+
+<div class="goldTrimTop"></div>
+
+<div class="reelWindow">
+
+<div class="reel" id="reel1">
+
+<div class="reelItem">Pizza</div>
+<div class="reelItem">BBQ</div>
+<div class="reelItem">Mexican</div>
+<div class="reelItem">Italian</div>
+<div class="reelItem">Chinese</div>
+<div class="reelItem">Seafood</div>
+<div class="reelItem">Burger</div>
+<div class="reelItem">Chicken</div>
+
+</div>
+
+<div class="reel" id="reel2">
+
+<div class="reelItem">Tonight</div>
+<div class="reelItem">Friday</div>
+<div class="reelItem">Saturday</div>
+<div class="reelItem">Sunday</div>
+<div class="reelItem">Lunch</div>
+<div class="reelItem">Dinner</div>
+<div class="reelItem">Date</div>
+<div class="reelItem">Family</div>
+
+</div>
+
+<div class="reel" id="reel3">
+
+<div class="reelItem">Now</div>
+<div class="reelItem">Soon</div>
+<div class="reelItem">Later</div>
+<div class="reelItem">Again</div>
+<div class="reelItem">Tonight</div>
+<div class="reelItem">Tomorrow</div>
+<div class="reelItem">Weekend</div>
+<div class="reelItem">Vacation</div>
+
+</div>
+
+</div>
+
+<div class="goldTrimBottom"></div>
+
+</div>
+
+<div id="winnerBanner">
+
+READY TO SPIN
+
+</div>
+
+</section>
+
+<section id="controls">
+
+<button
+id="spinButton"
+class="goldButton">
+
+SPIN
+
+</button>
+
+<button
+id="leverButton"
+class="secondaryButton">
+
+PULL LEVER
+
+</button>
+
+</section>
+
+<section id="quickModes">
+
+<button class="modeButton">
+
+Normal
+
+</button>
+
+<button class="modeButton">
+
+Vegas
+
+</button>
+
+<button class="modeButton">
+
+Turbo
+
+</button>
+
+<button class="modeButton">
+
+Party
+
+</button>
+
+</section>
+
+<section id="categories">
+
+<h2>
+
+Categories
+
+</h2>
+
+<div class="categoryGrid">
+
+<button class="categoryCard">
+
+⭐ Favorites
+
+</button>
+
+<button class="categoryCard">
+
+🍕 Restaurants
+
+</button>
+
+<button class="categoryCard">
+
+🎬 Movies
+
+</button>
+
+<button class="categoryCard">
+
+🏖 Vacation
+
+</button>
+
+<button class="categoryCard">
+
+🏈 Football
+
+</button>
+
+<button class="categoryCard">
+
+🎲 Custom
+
+</button>
+
+</div>
+
+</section>
+<section id="decisionModes">
+
+    <h2>Decision Modes</h2>
+
+    <div class="modeGrid">
+
+        <button class="decisionCard active" data-mode="slot">
+            <div class="decisionIcon">🎰</div>
+            <div class="decisionTitle">Slot Machine</div>
+        </button>
+
+        <button class="decisionCard" data-mode="wheel">
+            <div class="decisionIcon">🎡</div>
+            <div class="decisionTitle">Prize Wheel</div>
+        </button>
+
+        <button class="decisionCard" data-mode="dice">
+            <div class="decisionIcon">🎲</div>
+            <div class="decisionTitle">Dice</div>
+        </button>
+
+        <button class="decisionCard" data-mode="coin">
+            <div class="decisionIcon">🪙</div>
+            <div class="decisionTitle">Coin Flip</div>
+        </button>
+
+        <button class="decisionCard" data-mode="random">
+            <div class="decisionIcon">🎯</div>
+            <div class="decisionTitle">Random Picker</div>
+        </button>
+
+        <button class="decisionCard" data-mode="eightball">
+            <div class="decisionIcon">🎱</div>
+            <div class="decisionTitle">Magic 8 Ball</div>
+        </button>
+
+    </div>
+
+</section>
+
+
+<section id="historyPanel">
+
+    <div class="panelHeader">
+
+        <h2>Recent History</h2>
+
+        <button
+            id="clearHistoryButton"
+            class="smallButton">
+
+            Clear
+
+        </button>
+
+    </div>
+
+    <div id="historyList">
+
+        <div class="historyEmpty">
+
+            No spins yet.
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section id="statisticsPanel">
+
+    <h2>Statistics</h2>
+
+    <div class="statsGrid">
+
+        <div class="statCard">
+
+            <span class="statLabel">
+
+                Total Spins
+
+            </span>
+
+            <span
+                id="statTotalSpins"
+                class="statValue">
+
+                0
+
+            </span>
+
+        </div>
+
+        <div class="statCard">
+
+            <span class="statLabel">
+
+                Favorite Category
+
+            </span>
+
+            <span
+                id="statFavoriteCategory"
+                class="statValue">
+
+                —
+
+            </span>
+
+        </div>
+
+        <div class="statCard">
+
+            <span class="statLabel">
+
+                Last Winner
+
+            </span>
+
+            <span
+                id="statLastWinner"
+                class="statValue">
+
+                —
+
+            </span>
+
+        </div>
+
+        <div class="statCard">
+
+            <span class="statLabel">
+
+                Today's Spins
+
+            </span>
+
+            <span
+                id="statToday"
+                class="statValue">
+
+                0
+
+            </span>
+
+        </div>
+
+    </div>
+
+</section>
+
+</main>
+
+
+<nav id="bottomNav">
+
+    <button class="navButton active">
+
+        🏠
+        <span>Home</span>
+
+    </button>
+
+    <button class="navButton">
+
+        📚
+        <span>Lists</span>
+
+    </button>
+
+    <button class="navButton">
+
+        📜
+        <span>History</span>
+
+    </button>
+
+    <button class="navButton">
+
+        ⚙️
+        <span>Settings</span>
+
+    </button>
+
+</nav>
+<footer id="settingsDrawer" class="drawer hidden">
+
+    <div class="drawerHandle"></div>
+
+    <h2>Settings</h2>
+
+    <div class="settingRow">
+        <label for="soundToggle">Sound</label>
+        <input type="checkbox" id="soundToggle" checked>
+    </div>
+
+    <div class="settingRow">
+        <label for="vibrationToggle">Vibration</label>
+        <input type="checkbox" id="vibrationToggle" checked>
+    </div>
+
+    <div class="settingRow">
+        <label for="confettiToggle">Confetti</label>
+        <input type="checkbox" id="confettiToggle" checked>
+    </div>
+
+    <div class="settingRow">
+        <label for="removeWinnerToggle">
+            Remove Winner Until Reset
+        </label>
+        <input
+            type="checkbox"
+            id="removeWinnerToggle">
+    </div>
+
+    <div class="settingRow">
+
+        <label for="spinSpeed">
+
+            Spin Speed
+
+        </label>
+
+        <select id="spinSpeed">
+
+            <option value="turbo">Turbo</option>
+
+            <option value="normal" selected>
+                Normal
+            </option>
+
+            <option value="vegas">
+                Vegas
+            </option>
+
+            <option value="party">
+                Party
+            </option>
+
+        </select>
+
+    </div>
+
+    <div class="settingRow">
+
+        <label for="themeSelect">
+
+            Theme
+
+        </label>
+
+        <select id="themeSelect">
+
+            <option value="premium" selected>
+                Premium Black & Gold
+            </option>
+
+            <option value="chrome">
+                Chrome
+            </option>
+
+            <option value="retro">
+                Retro Vegas
+            </option>
+
+            <option value="wood">
+                Walnut
+            </option>
+
+        </select>
+
+    </div>
+
+</footer>
+
+<div id="editListModal" class="modal hidden">
+
+    <div class="modalCard">
+
+        <div class="modalHeader">
+
+            <h2>Edit Category</h2>
+
+            <button
+                id="closeModalButton"
+                class="iconButton">
+
+                ✕
+
+            </button>
+
+        </div>
+
+        <label for="categoryName">
+
+            Category Name
+
+        </label>
+
+        <input
+            id="categoryName"
+            type="text"
+            placeholder="Restaurants">
+
+        <label for="categoryItems">
+
+            Items (one per line)
+
+        </label>
+
+        <textarea
+            id="categoryItems"
+            rows="12"
+            placeholder="Pizza&#10;BBQ&#10;Mexican&#10;Italian"></textarea>
+
+        <div class="modalButtons">
+
+            <button
+                id="saveCategoryButton"
+                class="goldButton">
+
+                Save
+
+            </button>
+
+            <button
+                id="cancelCategoryButton"
+                class="secondaryButton">
+
+                Cancel
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div id="confettiContainer"></div>
+
+<div id="toast"></div>
+<!-- Hidden Audio Elements -->
+
+<audio
+    id="spinSound"
+    preload="auto">
+
+    <source src="sounds/spin.mp3" type="audio/mpeg">
+
+</audio>
+
+<audio
+    id="stopSound"
+    preload="auto">
+
+    <source src="sounds/stop.mp3" type="audio/mpeg">
+
+</audio>
+
+<audio
+    id="winnerSound"
+    preload="auto">
+
+    <source src="sounds/winner.mp3" type="audio/mpeg">
+
+</audio>
+
+
+<!-- Loading Overlay -->
+
+<div id="loadingOverlay">
+
+    <div class="loadingCard">
+
+        <div class="loadingSpinner"></div>
+
+        <h2>Lucky Picker Pro</h2>
+
+        <p>Loading...</p>
+
+    </div>
+
+</div>
+
+
+<!-- JavaScript -->
+
+<script src="app.js"></script>
+
+<script>
+
+if ('serviceWorker' in navigator) {
+
+    window.addEventListener('load', () => {
+
+        navigator.serviceWorker.register('service-worker.js')
+
+        .then(registration => {
+
+            console.log(
+                'Service Worker registered:',
+                registration.scope
+            );
+
+        })
+
+        .catch(error => {
+
+            console.log(
+                'Service Worker registration failed:',
+                error
+            );
+
+        });
+
+    });
+
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+
+    setTimeout(() => {
+
+        const overlay =
+            document.getElementById("loadingOverlay");
+
+        if (overlay) {
+
+            overlay.classList.add("fadeOut");
+
+            setTimeout(() => {
+
+                overlay.remove();
+
+            }, 500);
+
+        }
+
+    }, 500);
+
+});
+
+</script>
+
+</body>
+
+</html>
